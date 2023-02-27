@@ -8,7 +8,8 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.widget.Button
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
@@ -26,6 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
 
 typealias LumaListener = (luma: Double) -> Unit
 
@@ -46,12 +48,6 @@ class CameraActivity : AppCompatActivity() {
         setContentView(viewBinding.root)
 
         title = "KotlinApp"
-
-        val button: Button = findViewById(R.id.GoToAudio)
-        button.setOnClickListener {
-            val intent = Intent(this@CameraActivity, AudioActivity::class.java)
-            startActivity(intent)
-        }
 
         // Request camera permissions
         if (allPermissionsGranted()) {
@@ -119,6 +115,40 @@ class CameraActivity : AppCompatActivity() {
 
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
+
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.camera_action, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.camera_action_audio -> {
+            val intent = Intent(this, AudioActivity::class.java)
+            startActivity(intent)
+            true
+        }
+
+        R.id.camera_action_show_images -> {
+            // User chose the "Favorite" action, mark the current item
+            // as a favorite...
+            true
+        }
+
+        R.id.camera_action_delete -> {
+            // User chose the "Favorite" action, mark the current item
+            // as a favorite...
+            true
+        }
+
+        else -> {
+            // If we got here, the user's action was not recognized.
+            // Invoke the superclass to handle it.
+            super.onOptionsItemSelected(item)
+        }
+    }
+
 
     private fun takePhoto() {
         // Get a stable reference of the modifiable image capture use case

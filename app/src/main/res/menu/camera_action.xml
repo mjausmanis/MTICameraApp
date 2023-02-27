@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/camera_action_audio"
+        android:title="Audio"
+        app:showAsAction="never"/>
+    <item android:id="@+id/camera_action_show_images"
+        android:title="Show Images"
+        app:showAsAction="never"/>
+    <item android:id="@+id/camera_action_delete"
+        android:title="Delete"
+        app:showAsAction="never"/>
+</menu>
