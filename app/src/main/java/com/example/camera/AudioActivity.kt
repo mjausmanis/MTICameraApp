@@ -18,6 +18,11 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.PackageManagerCompat.LOG_TAG
+import androidx.core.os.bundleOf
+import com.google.firebase.FirebaseApp
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import java.io.IOException
 
 
@@ -25,6 +30,7 @@ private const val LOG_TAG = "AudioRecordTest"
 private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 class AudioActivity : AppCompatActivity() {
 
+    private lateinit var analytics: FirebaseAnalytics
     private var fileName: String = ""
 
     private var recordButton: RecordButton? = null
@@ -79,8 +85,12 @@ class AudioActivity : AppCompatActivity() {
 
     private fun onRecord(start: Boolean) = if (start) {
         startRecording()
+        val params = bundleOf("event_name" to "recording")
+        FirebaseAnalytics.getInstance(this@AudioActivity).logEvent("recording_started", params)
     } else {
         stopRecording()
+        val params = bundleOf("event_name" to "recording")
+        FirebaseAnalytics.getInstance(this@AudioActivity).logEvent("stopped_recording", params)
     }
 
     private fun onPlay(start: Boolean) = if (start) {
@@ -171,6 +181,9 @@ class AudioActivity : AppCompatActivity() {
 
     override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
+
+        FirebaseApp.initializeApp(this)
+        analytics = Firebase.analytics
 
         // Record to the external cache directory for visibility
         fileName = "${externalCacheDir?.absolutePath}/audiorecordtest.3gp"

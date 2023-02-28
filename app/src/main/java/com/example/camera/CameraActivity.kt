@@ -11,6 +11,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.ImageCapture
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
+import androidx.core.os.bundleOf
+import com.example.camera.databinding.CameraActivityBinding
+import com.google.firebase.FirebaseApp
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.widget.Toast
@@ -21,11 +31,10 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.camera.core.ImageCaptureException
-import com.example.camera.databinding.CameraActivityBinding
-import java.text.SimpleDateFormat
 import java.util.Locale
 
 class CameraActivity : AppCompatActivity() {
+    private lateinit var analytics: FirebaseAnalytics
     private lateinit var viewBinding: CameraActivityBinding
 
     private var imageCapture: ImageCapture? = null
@@ -35,6 +44,11 @@ class CameraActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = CameraActivityBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+
+        title = "KotlinApp"
+
+        FirebaseApp.initializeApp(this)
+        analytics = Firebase.analytics
 
         // Request camera permissions
         if (allPermissionsGranted()) {
@@ -50,6 +64,8 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun takePhoto() {
+        val params = bundleOf("event_name" to "take_photo")
+        FirebaseAnalytics.getInstance(this).logEvent("take_photo_attempt", params)
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
@@ -79,11 +95,15 @@ class CameraActivity : AppCompatActivity() {
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
+                    val params = bundleOf("event_name" to "take_photo")
+                    FirebaseAnalytics.getInstance(this@CameraActivity).logEvent("error_taking_photo", params)
                 }
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
                     val msg = "Photo capture succeeded: ${output.savedUri}"
+                    val params = bundleOf("event_name" to "take_photo")
+                    FirebaseAnalytics.getInstance(this@CameraActivity).logEvent("photo_taken", params)
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
                 }
@@ -124,6 +144,9 @@ class CameraActivity : AppCompatActivity() {
             }
 
         }, ContextCompat.getMainExecutor(this))
+
+        val params = bundleOf("event_name" to "camera")
+        FirebaseAnalytics.getInstance(this@CameraActivity).logEvent("camera_started", params)
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -142,11 +165,15 @@ class CameraActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
+                val params = bundleOf("event_name" to "permissions")
+                FirebaseAnalytics.getInstance(this@CameraActivity).logEvent("camera_permissions_granted", params)
                 startCamera()
             } else {
                 Toast.makeText(this,
                     "Permissions not granted by the user.",
                     Toast.LENGTH_SHORT).show()
+                val params = bundleOf("event_name" to "permissions")
+                FirebaseAnalytics.getInstance(this@CameraActivity).logEvent("camera_permissions_denied", params)
                 finish()
             }
         }
